@@ -119,7 +119,6 @@ pub async fn run_comfy_main_async(
             .expect("Couldn't append canvas to document body.");
     }
 
-
     let scale_factor = game_config()
         .scale_factor_override
         .unwrap_or(window.scale_factor() as f32);
@@ -199,7 +198,6 @@ pub async fn run_comfy_main_async(
                             .set_cursor_visible(!global_state.cursor_hidden);
                     }
 
-
                     set_frame_time(frame_start.elapsed().as_secs_f32());
                     inc_frame_num();
 
@@ -215,36 +213,32 @@ pub async fn run_comfy_main_async(
                     tracy_client::frame_mark();
                 }
 
-                Event::DeviceEvent { event, .. } => {
-                    match event {
-                        DeviceEvent::Key(input) => {
-                            if let Some(keycode) =
-                                KeyCode::try_from_winit(input.physical_key)
-                            {
-                                match input.state {
-                                    ElementState::Pressed => {
-                                        let mut state =
-                                            GLOBAL_STATE.borrow_mut();
+                Event::DeviceEvent { event, .. } => match event {
+                    DeviceEvent::Key(input) => {
+                        if let Some(keycode) =
+                            KeyCode::try_from_winit(input.physical_key)
+                        {
+                            match input.state {
+                                ElementState::Pressed => {
+                                    let mut state = GLOBAL_STATE.borrow_mut();
 
-                                        state.pressed.insert(keycode);
-                                        state.just_pressed.insert(keycode);
-                                        state.just_released.remove(&keycode);
-                                    }
+                                    state.pressed.insert(keycode);
+                                    state.just_pressed.insert(keycode);
+                                    state.just_released.remove(&keycode);
+                                }
 
-                                    ElementState::Released => {
-                                        let mut state =
-                                            GLOBAL_STATE.borrow_mut();
+                                ElementState::Released => {
+                                    let mut state = GLOBAL_STATE.borrow_mut();
 
-                                        state.pressed.remove(&keycode);
-                                        state.just_pressed.remove(&keycode);
-                                        state.just_released.insert(keycode);
-                                    }
+                                    state.pressed.remove(&keycode);
+                                    state.just_pressed.remove(&keycode);
+                                    state.just_released.insert(keycode);
                                 }
                             }
                         }
-                        _ => {}
                     }
-                }
+                    _ => {}
+                },
                 Event::WindowEvent { ref event, window_id: _ } => {
                     if engine.renderer.as_mut().unwrap().on_event(event, egui())
                     {
@@ -310,6 +304,32 @@ pub async fn run_comfy_main_async(
                             }
                         }
 
+                        WindowEvent::KeyboardInput { event, .. } => {
+                            if let Some(keycode) =
+                                KeyCode::try_from_winit(event.physical_key)
+                            {
+                                match event.state {
+                                    ElementState::Pressed => {
+                                        let mut state =
+                                            GLOBAL_STATE.borrow_mut();
+
+                                        state.pressed.insert(keycode);
+                                        state.just_pressed.insert(keycode);
+                                        state.just_released.remove(&keycode);
+                                    }
+
+                                    ElementState::Released => {
+                                        let mut state =
+                                            GLOBAL_STATE.borrow_mut();
+
+                                        state.pressed.remove(&keycode);
+                                        state.just_pressed.remove(&keycode);
+                                        state.just_released.insert(keycode);
+                                    }
+                                }
+                            }
+                        }
+
                         WindowEvent::MouseWheel { delta, .. } => {
                             let mut global_state = GLOBAL_STATE.borrow_mut();
 
@@ -330,8 +350,8 @@ pub async fn run_comfy_main_async(
                         }
 
                         WindowEvent::Resized(physical_size) => {
-                            if physical_size.width > min_resolution.0 &&
-                                physical_size.height > min_resolution.1
+                            if physical_size.width > min_resolution.0
+                                && physical_size.height > min_resolution.1
                             {
                                 engine.resize(uvec2(
                                     physical_size.width,
